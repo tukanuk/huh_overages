@@ -34,7 +34,7 @@ def csvExport(filePath, df):
     startDate = df['Hour'][0].strftime("%Y-%m-%d")
     endDate = df['Hour'].iloc[-1].strftime("%Y-%m-%d")
     print(f"From: {startDate} to {endDate}")
-    # df['Excess'] = df['Excess'].astype(int)
+    df['Excess'] = df['Excess'].astype(int)
     df['HHU'] = df['HHU'].astype(int)
     # if os.path.isdir(f"{filePath}/results") == False:
     os.makedirs(f"{filePath}/results", exist_ok=True)
@@ -68,6 +68,8 @@ elif os.path.isdir(filePath):
             if entry.name.endswith(".csv"):
                 # print(entry.name)
                 fileList.append(entry.name)
+    if len(fileList) == 0:
+        raise Exception("No .csv files in this directory")
     # print(fileList)
 else:
     raise Exception("Couldn't find a valid file from the path provided")
