@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
 
+from os.path import isdir
 import pandas as pd
 import argparse
+import datetime
+import os
 
-from pandas.io import parsers
+# from pandas.io import parsers
 
 
-def fileOpen(file):
-    data = pd.read_csv(file)
-    df = pd.DataFrame(
-        data, columns=['Tenant UUID', 'Hour', 'Host Name', 'Host Units'])
+def fileOpen(filePath, fileList):
+    df = pd.DataFrame()
+    for item in fileList:
+        data = pd.read_csv(f"{filePath}/{item}")
+        df2 = pd.DataFrame(
+            data, columns=['Tenant UUID', 'Hour', 'Host Name', 'Host Units'])
+        df = df.append(df2, ignore_index=True)
+
     df = df.rename(columns={'Host Units': 'HHU'})
 
     # Drop the Summary Rows
@@ -21,11 +28,16 @@ def fileOpen(file):
     return df
 
 
-def csvExport(df):
-    # df = df.round({'Host Units': 0, 'Excess': 0})
-    df['Excess'] = df['Excess'].astype(int)
+def csvExport(filePath, df):
+    startDate = df['Hour'][0].strftime("%Y-%m-%d")
+    endDate = df['Hour'].iloc[-1].strftime("%Y-%m-%d")
+    print(f"From: {startDate} to {endDate}")
+    # df['Excess'] = df['Excess'].astype(int)
     df['HHU'] = df['HHU'].astype(int)
-    df.to_csv("~/Desktop/huh_data/hourly_hhu_total.csv", index=False)
+    # if os.path.isdir(f"{filePath}/results") == False:
+    os.makedirs(f"{filePath}/results", exist_ok=True)
+    df.to_csv(
+        f"{filePath}/results/hourly_hhu_{startDate}_to_{endDate}.csv", index=False)
 
 
 # Commmand line args parsing
@@ -37,15 +49,34 @@ parser.add_argument("-hu", "--hostunits", required=True,
                     help="The account host unit limit")
 args = parser.parse_args()
 
-rawDataFile = args.raw_data_file[0]
+
+filePath = args.raw_data_file[0]
+fileList = []
+
+
+# builds a list of the files to be processed
+if os.path.isfile(filePath):
+    filePath, fileName = os.path.split(filePath)
+    fileList = [fileName]
+elif os.path.isdir(filePath):
+    print("Adding all .csv files in directory")
+    with os.scandir(filePath) as dirs:
+        for entry in dirs:
+            if entry.name.endswith(".csv"):
+                # print(entry.name)
+                fileList.append(entry.name)
+    # print(fileList)
+else:
+    raise Exception("Couldn't find a valid file from the path provided")
+
 hostUnitLimit = args.hostunits
 
 print()
-print(rawDataFile)
-print(type(rawDataFile))
+print(filePath)
+print(fileList)
 print()
 
-df = fileOpen(rawDataFile)
+df = fileOpen(filePath, fileList)
 
 # Group by each hour
 hourlyDF = df.groupby("Hour", as_index=False)['HHU'].sum()
@@ -58,7 +89,7 @@ hourlyDF.loc[hourlyDF['Excess'] <= 0, 'Excess'] = 0
 print(hourlyDF)
 
 # Sum
-print(hourlyDF['Excess'].sum())
+print(f"Total excess host unit hours: {hourlyDF['Excess'].sum():.0f}")
 
 # Export
-csvExport(hourlyDF)
+csvExport(filePath, hourlyDF)
