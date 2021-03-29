@@ -3,13 +3,14 @@
 from os.path import isdir
 import pandas as pd
 import argparse
-import datetime
+# import datetime
 import os
 
 # from pandas.io import parsers
 
 
 def fileOpen(filePath, fileList):
+    """ Opens a file or directory of .csv files """
     df = pd.DataFrame()
     for item in fileList:
         data = pd.read_csv(f"{filePath}/{item}")
@@ -29,6 +30,7 @@ def fileOpen(filePath, fileList):
 
 
 def csvExport(filePath, df):
+    """ CSV Export & some summary statistics"""
     startDate = df['Hour'][0].strftime("%Y-%m-%d")
     endDate = df['Hour'].iloc[-1].strftime("%Y-%m-%d")
     print(f"From: {startDate} to {endDate}")
