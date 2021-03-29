@@ -30,6 +30,8 @@ def csvExport(df):
     df.to_csv("~/Desktop/huh_data/hourly_hhu_total.csv", index=False)
 
 
+hostUnitLimit = 320
+
 df = fileOpen()
 
 # Group by each hour
@@ -39,7 +41,7 @@ hourlyDF = df.groupby("Hour", as_index=False)['HHU'].sum()
 # hourlyDF.info()
 
 # Add the excess column
-hourlyDF['Excess'] = hourlyDF['HHU'] - 320
+hourlyDF['Excess'] = hourlyDF['HHU'] - hostUnitLimit
 
 # Remove 'negative excess'
 hourlyDF.loc[hourlyDF['Excess'] <= 0, 'Excess'] = 0
