@@ -44,13 +44,14 @@ def csvExport(filePath, df):
 parser = argparse.ArgumentParser(
     description="Find when host units hours were consumed"
 )
-parser.add_argument("raw_data_file", nargs=1, metavar="<raw-data-file>")
+parser.add_argument("raw_data_file_or_folder", nargs=1, metavar="<raw-data-file>",
+                    help="Include a .csv of a folder containing .csv")
 parser.add_argument("-hu", "--hostunits", required=True,
                     help="The account host unit limit")
 args = parser.parse_args()
 
 
-filePath = args.raw_data_file[0]
+filePath = args.raw_data_file_or_folder[0]
 fileList = []
 
 
